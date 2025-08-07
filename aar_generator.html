@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AAR PDF Generator</title>
+  <script src="https://unpkg.com/pdf-lib"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    textarea { width: 100%; height: 60px; margin-bottom: 10px; }
+    button { padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>AAR Report PDF Generator</h1>
+  <form id="pdfForm">
+    <label>Executive Summary</label><textarea name="ExecutiveSum"></textarea>
+    <label>Incident Summary</label><textarea name="IncidentSum"></textarea>
+    <label>Objectives and Scope</label><textarea name="ObjectivesNScope"></textarea>
+    <label>Methodology</label><textarea name="Method"></textarea>
+    <label>Timeline of Key Events</label><textarea name="TimelineAndEvents"></textarea>
+    <label>Strengths and Successes</label><textarea name="StrengthNSuc"></textarea>
+    <label>Areas for Improvement</label><textarea name="AreasForImp"></textarea>
+    <label>Action Items and Recommendations</label><textarea name="ActionItems"></textarea>
+    <label>Improvement Plan</label><textarea name="ImprovementPlan"></textarea>
+    <label>Conclusion</label><textarea name="Conclusion"></textarea>
+    <button type="submit">Generate PDF</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("pdfForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      const existingPdfBytes = await fetch("aar_template.pdf").then(res => res.arrayBuffer());
+      const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+      const formPdf = pdfDoc.getForm();
+
+      for (let [key, value] of formData.entries()) {
+        try {
+          formPdf.getTextField(key).setText(value);
+        } catch (e) {
+          console.warn("Field not found:", key);
+        }
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "AAR_Report.pdf";
+      link.click();
+    });
+  </script>
+</body>
+</html>
